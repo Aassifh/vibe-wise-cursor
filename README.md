@@ -10,13 +10,31 @@ For anyone who wants to learn as they build—whether you're an aspiring enginee
 
 ## Get started
 
-You need [Claude Code](https://code.claude.com/docs/en/setup) and
+You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup) and
 [Python 3](https://www.python.org/downloads/). VibeWise uses Python to restore
 learning context and reset learning notes. No extra Python packages are needed.
 
-VibeWise has been approved for Anthropic's Claude directory, but isn't listed in
-the public community marketplace yet. I expect it to appear soon. In the meantime,
-install it in Claude Code through my GitHub marketplace:
+Install from the built-in **Anthropic Directory**. In Claude Code, run:
+
+```text
+/plugin install vibe-wise@anthropic-plugin-directory
+```
+
+Choose an installation scope and confirm. No marketplace setup is needed.
+
+Restart Claude Code in the project you want to work on, then run:
+
+```text
+/vibe-wise:learn
+```
+
+Setup asks one question at a time. Use the arrow keys and Enter for choices; pick **Use defaults** to skip preference setup. Then ask Claude to build something. Starting fresh or joining an unfamiliar repository both work. For an existing repository, Claude first inspects the code and sketches a small system map.
+
+<details>
+<summary>Alternative: install through GitHub</summary>
+
+If Anthropic Directory isn't available in your Claude Code version, use the GitHub
+marketplace. Choose one installation method; you don't need both.
 
 Run these commands **one at a time** in Claude Code. First, add the marketplace:
 
@@ -30,16 +48,11 @@ After it finishes, install the plugin:
 /plugin install vibe-wise@vibe-wise
 ```
 
-**Enable automatic updates:** open `/plugin` → **Marketplaces** → **vibe-wise** →
+Enable automatic updates through `/plugin` → **Marketplaces** → **vibe-wise** →
 **Enable auto-update**. This is off by default for third-party marketplaces.
+Restart Claude Code, then run `/vibe-wise:learn` in your project.
 
-Restart Claude Code in the project you want to work on, then run:
-
-```text
-/vibe-wise:learn
-```
-
-Setup asks one question at a time. Use the arrow keys and Enter for choices; pick **Use defaults** to skip preference setup. Then ask Claude to build something. Starting fresh or joining an unfamiliar repository both work. For an existing repository, Claude first inspects the code and sketches a small system map.
+</details>
 
 ## What it feels like
 
@@ -210,11 +223,17 @@ your experience level or preferences, just tell Claude; no reset is needed.
 
 ## Updating
 
-For automatic updates, open `/plugin` → **Marketplaces** → **vibe-wise** →
-**Enable auto-update**. Auto-update is off by default for third-party marketplaces.
-Claude Code notifies you after an update; restart Claude Code to load the new version.
+Open `/plugin` → **Installed**, select VibeWise, and choose **Update now**.
+For automatic updates, open **Marketplaces**, select the source you installed from,
+and enable auto-update if it's off.
 
-To update manually, run these in your terminal:
+To update a directory installation from your terminal:
+
+```sh
+claude plugin update vibe-wise@anthropic-plugin-directory
+```
+
+If you installed through the GitHub marketplace instead:
 
 ```sh
 claude plugin marketplace update vibe-wise
