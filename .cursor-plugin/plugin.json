@@ -1,0 +1,16 @@
+{
+  "name": "vibe-wise",
+  "displayName": "VibeWise",
+  "version": "0.1.43",
+  "description": "You build. AI writes. Learn how to build software while Claude writes the code.",
+  "author": { "name": "Noah Kim", "email": "" },
+  "homepage": "https://github.com/nykooi1/vibe-wise",
+  "repository": "https://github.com/Aassifh/vibe-wise-cursor",
+  "license": "MIT",
+  "logo": "assets/vibewise-icon.png",
+  "keywords": ["learning", "mentoring", "planning"],
+  "category": "developer-tools",
+  "tags": ["learning", "guidance"],
+  "skills": "./skills/",
+  "hooks": "./hooks/cursor-hooks.json"
+}

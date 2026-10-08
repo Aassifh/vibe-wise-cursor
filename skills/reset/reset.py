@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Preview by default; reset only a confirmed snapshot of local learning notes."""
 
 import argparse

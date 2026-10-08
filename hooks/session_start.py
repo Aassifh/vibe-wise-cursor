@@ -1,9 +1,10 @@
-"""Restore learning context when Claude Code starts or resumes a session.
+#!/usr/bin/env python3
+"""Restore learning context when a supported coding agent starts a session.
 
-Claude Code sends a JSON event on stdin. For a project with active learning notes,
-we print JSON instructions telling Claude which files to read. Otherwise we stay
+The agent sends a JSON event on stdin. For a project with active learning notes,
+we print JSON instructions telling the agent which files to read. Otherwise we stay
 silent. This hook does not teach, write notes, or parse conversation transcripts.
-The events that trigger it (including compaction) are configured in hooks.json.
+The events that trigger it are configured in the platform hook manifests.
 """
 
 import json
@@ -54,18 +55,36 @@ def state_directory(cwd):
     return None
 
 
-def restore(payload):
-    """Build Claude's restoration instructions, or return None to do nothing."""
-    if not isinstance(payload, dict) or payload.get("hook_event_name") != "SessionStart":
-        return None
-    raw_cwd = payload.get("cwd")
-    # Use the event's explicit project path. A relative path would depend on where
-    # the hook process happened to start and could select the wrong learning notes.
-    if not isinstance(raw_cwd, str) or not Path(raw_cwd).is_absolute():
-        return None
-    cwd = Path(raw_cwd).resolve()
-    if not cwd.is_dir():
-        return None
+def project_roots(payload):
+    """Normalize supported event payloads into existing absolute project roots."""
+    event = payload.get("hook_event_name") if isinstance(payload, dict) else None
+    if event == "SessionStart":
+        candidates = [payload.get("cwd")]
+    elif event == "sessionStart":
+        candidates = payload.get("workspace_roots")
+        if not isinstance(candidates, list):
+            return event, []
+    else:
+        return event, []
+
+    roots = []
+    for candidate in candidates:
+        # Relative paths depend on the hook process location and could select the
+        # wrong project's learning notes.
+        if not isinstance(candidate, str) or not Path(candidate).is_absolute():
+            continue
+        try:
+            root = Path(candidate).resolve()
+        except (OSError, RuntimeError):
+            # A malformed root must not suppress restoration for other roots.
+            continue
+        if root.is_dir():
+            roots.append(root)
+    return event, roots
+
+
+def restoration_context(cwd):
+    """Build the unchanged learning restoration instructions for one project."""
     state = state_directory(cwd)
     if state is None:
         return None
@@ -92,11 +111,26 @@ def restore(payload):
         "questions; do not repeat completed onboarding. If the profile is now "
         "paused, keep it paused: this hook is not an explicit Learn invocation."
     )
-    # Claude Code adds additionalContext to the model's context. These are reading
-    # instructions for Claude; the hook itself hasn't loaded the map or progress.
-    return {"hookSpecificOutput": {
-        "hookEventName": "SessionStart", "additionalContext": context
-    }}
+    return context
+
+
+def restore(payload):
+    """Build the platform-specific hook response, or return None to do nothing."""
+    event, roots = project_roots(payload)
+    contexts = [context for root in roots
+                if (context := restoration_context(root)) is not None]
+    if not contexts:
+        return None
+    context = "\n\n".join(contexts)
+    if event == "SessionStart":
+        # Claude Code injects hookSpecificOutput.additionalContext.
+        return {"hookSpecificOutput": {
+            "hookEventName": "SessionStart", "additionalContext": context
+        }}
+    if event == "sessionStart":
+        # Cursor supports only env and additional_context for this event.
+        return {"additional_context": context}
+    return None
 
 
 def main():

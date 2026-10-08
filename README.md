@@ -1,18 +1,40 @@
-<img src=".claude-plugin/icon.svg" alt="VibeWise brain with code brackets" width="96" height="96">
+<img src="assets/vibewise-icon.png" alt="VibeWise brain with code brackets" width="96" height="96">
 
 # VibeWise
 
 **You build. AI writes.**
 
-A Claude Code plugin that puts learning first and keeps you in control while AI writes the code you designed. Claude **asks for your approach first**, helps you examine tradeoffs, and explains unfamiliar concepts. You shape the design and decide when it's ready to implement. Claude writes the code, then explains what it changed and why.
+A Cursor and Claude Code plugin that puts learning first and keeps you in control while AI writes the code you designed. The agent **asks for your approach first**, helps you examine tradeoffs, and explains unfamiliar concepts. You shape the design and decide when it's ready to implement. The agent writes the code, then explains what it changed and why.
 
 For anyone who wants to learn as they build—whether you're an aspiring engineer, a junior developer, or an experienced engineer exploring an unfamiliar stack. Practice planning how the pieces fit together, anticipating failures, and checking the result while keeping ownership of the decisions.
 
 ## Get started
 
-You need an up-to-date [Claude Code](https://code.claude.com/docs/en/setup) and
+You need an up-to-date Cursor or
+[Claude Code](https://code.claude.com/docs/en/setup), plus
 [Python 3](https://www.python.org/downloads/). VibeWise uses Python to restore
 learning context and reset learning notes. No extra Python packages are needed.
+
+### Cursor
+
+Clone or download this repository, then copy it to Cursor's local plugin
+directory. Replace the source path with the absolute path to your copy:
+
+```sh
+mkdir -p ~/.cursor/plugins/local
+rm -rf ~/.cursor/plugins/local/vibe-wise
+cp -R /absolute/path/to/vibe-wise-cursor ~/.cursor/plugins/local/vibe-wise
+```
+
+The copied folder must contain `.cursor-plugin/plugin.json` at its root. Restart
+Cursor, open the skills list, and confirm that **learn** and **reset** appear.
+Run the learn skill, then ask Cursor to build something.
+
+The `sessionStart` hook restores active learning context. Confirm it appears in
+**Cursor Settings → Hooks** and inspect the **Hooks** output channel after starting
+a conversation in a project where learning is active.
+
+### Claude Code
 
 Install from the built-in **Anthropic Directory**. In Claude Code, run:
 
@@ -209,21 +231,29 @@ are with the stack. Checkpoint frequency—Light, Normal, or Frequent—is separ
 - “Focus on backend architecture.”
 - “Use multiple-choice questions.”
 - “Just implement this one.”
-- “Pause learning.” Resume with `/vibe-wise:learn`.
+- “Pause learning.” Resume by running the learn skill in Cursor or
+  `/vibe-wise:learn` in Claude Code.
 
 Preferences, learning notes, and a project map live in `.vibe-wise/` in your project. Learning mode resumes in future sessions and after compaction. Add `.vibe-wise/` to your `.gitignore` to keep your notes out of Git; the plugin won't change it silently.
 
-No extra account, backend, or telemetry. Saved notes are included in Claude's context, so your normal Claude Code data settings still apply.
+No extra account, backend, or telemetry. Saved notes are included in the active
+coding agent's context, so your normal Cursor or Claude Code data settings apply.
 
-To start learning this project from scratch, run `/vibe-wise:reset`. It shows the
-project and asks **Cancel / Reset learning**. After confirmation, it backs up your
-profile, progress, and project map inside the notes directory's `backups/` folder,
-then restarts onboarding. Source code and other projects stay untouched. To change
-your experience level or preferences, just tell Claude; no reset is needed.
+To start learning this project from scratch, run the reset skill in Cursor or
+`/vibe-wise:reset` in Claude Code. It shows the project and asks
+**Cancel / Reset learning**. After confirmation, it backs up your profile,
+progress, and project map inside the notes directory's `backups/` folder, then
+restarts onboarding. Source code and other projects stay untouched. To change
+your experience level or preferences, just tell the agent; no reset is needed.
 
 ## Updating
 
-Open `/plugin` → **Installed**, select VibeWise, and choose **Update now**.
+For a Cursor local installation, pull or download the updated repository and
+repeat the copy commands above, then restart Cursor. Your project learning notes
+stay intact because they live in the project, not the plugin directory.
+
+For Claude Code, open `/plugin` → **Installed**, select VibeWise, and choose
+**Update now**.
 For automatic updates, open **Marketplaces**, select the source you installed from,
 and enable auto-update if it's off.
 

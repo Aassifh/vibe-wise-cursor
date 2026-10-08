@@ -11,8 +11,10 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = json.loads((ROOT / "hooks/hooks.json").read_text())
-REGISTRATION = CONFIG["hooks"]["SessionStart"][0]
+CLAUDE_CONFIG = json.loads((ROOT / "hooks/hooks.json").read_text())
+CURSOR_CONFIG = json.loads((ROOT / "hooks/cursor-hooks.json").read_text())
+REGISTRATION = CLAUDE_CONFIG["hooks"]["SessionStart"][0]
+CURSOR_REGISTRATION = CURSOR_CONFIG["hooks"]["sessionStart"][0]
 
 
 class SessionStartTests(unittest.TestCase):
@@ -66,6 +68,78 @@ class SessionStartTests(unittest.TestCase):
         result = self.run_hook(**kwargs)["hookSpecificOutput"]
         self.assertEqual(result["hookEventName"], "SessionStart")
         return result["additionalContext"]
+
+    def run_cursor_hook(self, roots=None, raw=None):
+        payload = raw if raw is not None else json.dumps({
+            "hook_event_name": "sessionStart",
+            "workspace_roots": [
+                str(root) for root in (roots if roots is not None else [self.project])
+            ],
+            "session_id": "test-session",
+            "is_background_agent": False,
+        })
+        result = subprocess.run(
+            [str(ROOT / CURSOR_REGISTRATION["command"])],
+            input=payload, text=True, capture_output=True, timeout=5,
+            env={"PATH": os.pathsep.join((str(Path(sys.executable).parent), os.defpath))},
+            cwd=self.root,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        return json.loads(result.stdout) if result.stdout else None
+
+    def test_cursor_registration_uses_version_one_session_start(self):
+        self.assertEqual(CURSOR_CONFIG, {
+            "version": 1,
+            "hooks": {
+                "sessionStart": [{"command": "./hooks/session_start.sh"}],
+            },
+        })
+
+    def test_cursor_active_project_uses_only_supported_output_field(self):
+        self.state()
+        result = self.run_cursor_hook()
+        self.assertEqual(set(result), {"additional_context"})
+        self.assertIn(str(ROOT / "skills/learn/SKILL.md"),
+                      result["additional_context"])
+        self.assertIn(str(self.project / ".vibe-wise"),
+                      result["additional_context"])
+
+    def test_cursor_inactive_and_malformed_projects_write_nothing(self):
+        self.assertIsNone(self.run_cursor_hook())
+        malformed = (
+            "",
+            "{",
+            "[]",
+            "null",
+            '{"hook_event_name":"sessionStart"}',
+            '{"hook_event_name":"sessionStart","workspace_roots":"not-a-list"}',
+            '{"hook_event_name":"sessionStart","workspace_roots":["relative"]}',
+        )
+        for raw in malformed:
+            with self.subTest(raw=raw):
+                self.assertIsNone(self.run_cursor_hook(raw=raw))
+
+    def test_cursor_restores_each_active_root_in_multi_root_workspace(self):
+        self.state()
+        second = self.root / "second project"
+        second.mkdir()
+        (second / ".git").mkdir()
+        self.state(second)
+        context = self.run_cursor_hook(
+            roots=[self.project, second])["additional_context"]
+        self.assertIn(str(self.project / ".vibe-wise"), context)
+        self.assertIn(str(second / ".vibe-wise"), context)
+
+    def test_cursor_skips_symlink_loop_and_restores_other_roots(self):
+        self.state()
+        first = self.root / "loop-one"
+        second = self.root / "loop-two"
+        first.symlink_to(second)
+        second.symlink_to(first)
+        context = self.run_cursor_hook(
+            roots=[first, self.project])["additional_context"]
+        self.assertIn(str(self.project / ".vibe-wise"), context)
 
     def test_fresh_project_is_inactive_and_hook_writes_nothing(self):
         self.assertIsNone(self.run_hook())
