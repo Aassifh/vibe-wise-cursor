@@ -42,6 +42,20 @@ class PackagingTests(unittest.TestCase):
         )
         self.assertTrue(all((ROOT / path).is_file() for path in required))
 
+    def test_shared_skills_do_not_require_claude_namespaced_commands(self):
+        skill_text = "\n".join(
+            (ROOT / path).read_text()
+            for path in ("skills/learn/SKILL.md", "skills/reset/SKILL.md")
+        )
+        self.assertNotIn("/vibe-wise:learn", skill_text)
+        self.assertNotIn("/vibe-wise:reset", skill_text)
+
+    def test_readme_documents_cursor_and_claude_installation(self):
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("~/.cursor/plugins/local/vibe-wise", readme)
+        self.assertIn("Claude Code", readme)
+        self.assertIn(".cursor-plugin/plugin.json", readme)
+
 
 if __name__ == "__main__":
     unittest.main()
