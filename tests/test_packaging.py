@@ -1,7 +1,9 @@
 """Validate the shared Claude Code and Cursor plugin package."""
 
 import json
+import os
 from pathlib import Path
+import shutil
 import unittest
 
 
@@ -55,6 +57,22 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("~/.cursor/plugins/local/vibe-wise", readme)
         self.assertIn("Claude Code", readme)
         self.assertIn(".cursor-plugin/plugin.json", readme)
+
+    def test_scripts_are_executable_and_have_shebangs(self):
+        for relative in (
+            "hooks/session_start.sh",
+            "hooks/session_start.py",
+            "skills/reset/reset.py",
+        ):
+            with self.subTest(script=relative):
+                path = ROOT / relative
+                self.assertTrue(os.access(path, os.X_OK))
+                self.assertTrue(path.read_bytes().startswith(b"#!"))
+
+    def test_external_script_binaries_are_available(self):
+        for binary in ("dirname", "python3", "sh"):
+            with self.subTest(binary=binary):
+                self.assertIsNotNone(shutil.which(binary))
 
 
 if __name__ == "__main__":
