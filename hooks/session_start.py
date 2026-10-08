@@ -73,7 +73,11 @@ def project_roots(payload):
         # wrong project's learning notes.
         if not isinstance(candidate, str) or not Path(candidate).is_absolute():
             continue
-        root = Path(candidate).resolve()
+        try:
+            root = Path(candidate).resolve()
+        except (OSError, RuntimeError):
+            # A malformed root must not suppress restoration for other roots.
+            continue
         if root.is_dir():
             roots.append(root)
     return event, roots

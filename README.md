@@ -236,7 +236,8 @@ are with the stack. Checkpoint frequency—Light, Normal, or Frequent—is separ
 
 Preferences, learning notes, and a project map live in `.vibe-wise/` in your project. Learning mode resumes in future sessions and after compaction. Add `.vibe-wise/` to your `.gitignore` to keep your notes out of Git; the plugin won't change it silently.
 
-No extra account, backend, or telemetry. Saved notes are included in Claude's context, so your normal Claude Code data settings still apply.
+No extra account, backend, or telemetry. Saved notes are included in the active
+coding agent's context, so your normal Cursor or Claude Code data settings apply.
 
 To start learning this project from scratch, run the reset skill in Cursor or
 `/vibe-wise:reset` in Claude Code. It shows the project and asks

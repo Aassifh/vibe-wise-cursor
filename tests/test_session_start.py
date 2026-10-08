@@ -79,10 +79,10 @@ class SessionStartTests(unittest.TestCase):
             "is_background_agent": False,
         })
         result = subprocess.run(
-            CURSOR_REGISTRATION["command"], shell=True,
+            [str(ROOT / CURSOR_REGISTRATION["command"])],
             input=payload, text=True, capture_output=True, timeout=5,
             env={"PATH": os.pathsep.join((str(Path(sys.executable).parent), os.defpath))},
-            cwd=ROOT,
+            cwd=self.root,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "")
@@ -130,6 +130,16 @@ class SessionStartTests(unittest.TestCase):
             roots=[self.project, second])["additional_context"]
         self.assertIn(str(self.project / ".vibe-wise"), context)
         self.assertIn(str(second / ".vibe-wise"), context)
+
+    def test_cursor_skips_symlink_loop_and_restores_other_roots(self):
+        self.state()
+        first = self.root / "loop-one"
+        second = self.root / "loop-two"
+        first.symlink_to(second)
+        second.symlink_to(first)
+        context = self.run_cursor_hook(
+            roots=[first, self.project])["additional_context"]
+        self.assertIn(str(self.project / ".vibe-wise"), context)
 
     def test_fresh_project_is_inactive_and_hook_writes_nothing(self):
         self.assertIsNone(self.run_hook())

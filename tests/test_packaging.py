@@ -51,6 +51,9 @@ class PackagingTests(unittest.TestCase):
         )
         self.assertNotIn("/vibe-wise:learn", skill_text)
         self.assertNotIn("/vibe-wise:reset", skill_text)
+        self.assertNotIn("<plugin root>", skill_text)
+        self.assertIn("${CURSOR_PLUGIN_ROOT}", skill_text)
+        self.assertIn("${CLAUDE_PLUGIN_ROOT}", skill_text)
 
     def test_readme_documents_cursor_and_claude_installation(self):
         readme = (ROOT / "README.md").read_text()
